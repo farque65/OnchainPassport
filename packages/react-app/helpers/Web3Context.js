@@ -403,6 +403,18 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
     );
   }
 
+  const [startBlock, setStartBlock] = useState();
+
+  useEffect(() => {
+    if (startBlock == undefined && localProvider) {
+      const updateStartBlock = async () => {
+        let latestBlock = await localProvider.getBlock();
+        setStartBlock(latestBlock.number);
+      };
+      updateStartBlock();
+    }
+  }, [localProvider]);
+
   // use props as a way to pass configuration values
   const providerProps = {
     tx,
@@ -424,6 +436,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
     loadWeb3Modal,
     logoutOfWeb3Modal,
     contractConfig,
+    startBlock,
   };
 
   return <Web3Context.Provider value={providerProps}>{children}</Web3Context.Provider>;

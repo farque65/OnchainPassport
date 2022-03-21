@@ -38,19 +38,24 @@ function MyApp({ Component, pageProps }) {
           <Header />
           <DevUI />
           <Menu style={{ textAlign: "center" }} selectedKeys={[router.asPath]} mode="horizontal">
-            <Menu.Item key="/">
+            {/* <Menu.Item key="/">
               <Link href="/">
                 <a>YourCollectibles</a>
               </Link>
-            </Menu.Item>
-            <Menu.Item key="/transfers">
-              <Link href="/transfers">
-                <a>Transfers</a>
+            </Menu.Item> */}
+            <Menu.Item key="/passportauth">
+              <Link href="/passportauth">
+                <a>Passport Authority</a>
               </Link>
             </Menu.Item>
             <Menu.Item key="/ipfsup">
               <Link href="/ipfsup">
                 <a>IPFS Upload</a>
+              </Link>
+            </Menu.Item>
+            {/* <Menu.Item key="/transfers">
+              <Link href="/transfers">
+                <a>Transfers</a>
               </Link>
             </Menu.Item>
             <Menu.Item key="/ipfsdown">
@@ -62,7 +67,7 @@ function MyApp({ Component, pageProps }) {
               <Link href="/debugcontracts">
                 <a>Debug Contracts</a>
               </Link>
-            </Menu.Item>
+            </Menu.Item> */}
           </Menu>
           <Component {...pageProps} />
         </>
