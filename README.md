@@ -1,6 +1,6 @@
 # 🏗 Scaffold-ETH - 🎟 Simple NFT Fork
 
-# Research spike for Gitcoin DAO DPOPP
+# Research spike
 
 > Exploring the implementation of an onchain passport authority and identity scoring system
 
