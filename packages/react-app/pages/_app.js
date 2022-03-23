@@ -10,7 +10,7 @@ import { ThemeSwitcherProvider } from "react-css-theme-switcher";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-const targetNetwork = "localhost";
+const targetNetwork = "rinkeby";
 
 function MyApp({ Component, pageProps }) {
   const router = useRouter();
@@ -42,7 +42,7 @@ function MyApp({ Component, pageProps }) {
               <Link href="/">
                 <a>YourCollectibles</a>
               </Link>
-            </Menu.Item> */}
+            </Menu.Item>
             <Menu.Item key="/passportauth">
               <Link href="/passportauth">
                 <a>Passport Authority</a>
@@ -53,7 +53,7 @@ function MyApp({ Component, pageProps }) {
                 <a>IPFS Upload</a>
               </Link>
             </Menu.Item>
-            {/* <Menu.Item key="/transfers">
+             <Menu.Item key="/transfers">
               <Link href="/transfers">
                 <a>Transfers</a>
               </Link>

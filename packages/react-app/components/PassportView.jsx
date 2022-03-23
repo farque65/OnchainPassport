@@ -1,7 +1,6 @@
 import { get, isEmpty } from "lodash";
 import React from "react";
-import { utils, constants } from "ethers";
-import { text } from "node:stream/consumers";
+import { utils, constants, BigNumber } from "ethers";
 
 function descriptionShorten(description) {
   if (!isEmpty(description)) {
