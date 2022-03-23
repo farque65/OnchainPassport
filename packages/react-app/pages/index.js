@@ -11,24 +11,6 @@ import { useDebounce } from "../hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { ethers, BigNumber } from "ethers";
 
-// EXAMPLE STARTING JSON:
-const STARTING_JSON = {
-  description: "It's actually a bison?",
-  external_url: "https://austingriffith.com/portfolio/paintings/", // <-- this can link to a page for the specific file too
-  image: "https://austingriffith.com/images/paintings/buffalo.jpg",
-  name: "Buffalo",
-  attributes: [
-    {
-      trait_type: "BackgroundColor",
-      value: "green",
-    },
-    {
-      trait_type: "Eyes",
-      value: "googly",
-    },
-  ],
-};
-
 const attestations = [
   {
     ref: "twitter",
@@ -149,11 +131,11 @@ verified
 */
 
 function home({ web3 }) {
-  const [yourJSON, setYourJSON] = useState(STARTING_JSON);
+  const [yourJSON, setYourJSON] = useState();
   const [sending, setSending] = useState();
   const [ipfsHash, setIpfsHash] = useState();
   const [verificationScore, setVerificationScore] = useState(0);
-  const [hasPassport, setHasPassport] = useState();
+  const [hasPassport, setHasPassport] = useState(true);
   const [passportData, setPassportData] = useState();
   const [passportIssuanceDate, setPassportIssuanceDate] = useState();
   const [passportName, setPassportName] = useState();
@@ -227,6 +209,7 @@ function home({ web3 }) {
     setMintingPassport(false);
   };
 
+  // Get list of issued passports
   const passportEvents = useEventListener(
     readContracts,
     "DpoppPassport",
