@@ -18,7 +18,7 @@ import { CeramicClient } from "@ceramicnetwork/http-client";
 import { DataModel } from "@glazed/datamodel";
 import { DIDDataStore } from "@glazed/did-datastore";
 import { TileLoader } from "@glazed/tile-loader";
-import modelAliases from "../../schemas/scripts/model.json";
+import modelAliases from "../../schemas/src/model.json";
 
 // contracts
 import deployedContracts from "../contracts/hardhat_contracts.json";
@@ -490,6 +490,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     contractConfig,
     startBlock,
     connection,
+    ceramicEnv
   };
 
   return <Web3Context.Provider value={providerProps}>{children}</Web3Context.Provider>;
