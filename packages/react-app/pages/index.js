@@ -140,7 +140,17 @@ function home({ web3 }) {
   const [passportIssuanceDate, setPassportIssuanceDate] = useState();
   const [passportName, setPassportName] = useState();
   const [mintingPassport, setMintingPassport] = useState();
-  const { readContracts, writeContracts, localProvider, mainnetProvider, address, userSigner, tx, startBlock } = web3;
+  const {
+    readContracts,
+    writeContracts,
+    localProvider,
+    mainnetProvider,
+    address,
+    userSigner,
+    tx,
+    startBlock,
+    connection,
+  } = web3;
 
   useEffect(() => {
     let score = 0;
@@ -229,6 +239,13 @@ function home({ web3 }) {
           <h3>Name: {yourJSON.name}</h3>
           <h3>Description: {yourJSON.description}</h3>
         </div>
+      )}
+      {connection.status === "connected" && connection.selfId ? (
+        <div>
+          <h3>Your DID: {connection.selfID.did}</h3>
+        </div>
+      ) : (
+        <div>NO DID</div>
       )}
       <Divider style={{ borderColor: "black" }} />
       <div className="p-10 mb-10">
