@@ -10,6 +10,7 @@ import slugify from "slugify";
 import { useDebounce } from "../hooks";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { ethers, BigNumber } from "ethers";
+import { useViewerRecord } from "@self.id/framework";
 
 const attestations = [
   {
@@ -150,7 +151,10 @@ function home({ web3 }) {
     tx,
     startBlock,
     connection,
+    ceramicEnv,
   } = web3;
+  const viewerRecord = useViewerRecord('basicProfile')
+  const [ceramicPassport, setCeramicPassport] = useState()
 
   useEffect(() => {
     let score = 0;
@@ -219,6 +223,33 @@ function home({ web3 }) {
     setMintingPassport(false);
   };
 
+  const createPassportCeramic = async () => {
+    console.log("Awaiting passport creation in Ceramic...");
+    const date = new Date();
+    const newPassport = await ceramicEnv.model.createTile("Passport", {
+      dateCreated: date.toISOString(),
+      dateUpdated: date.toISOString(),
+      stamps: []
+    });
+    console.log("Creating new passport: " + JSON.stringify(newPassport.content) + "; id: " + JSON.stringify(newPassport.id))
+    const streamID = await ceramicEnv.store.set("passport", { ...newPassport.content })
+    console.log("Stream ID: ", streamID.toUrl())
+  }
+
+  const getPassportCeramic = async () => {
+    if (connection.status === "connected") {
+      const pass = await ceramicEnv.store.get("passport");
+      console.log("Loaded passport: " + JSON.stringify(pass))
+      setCeramicPassport(pass)
+    } else {
+      console.log("Not connected")
+    }
+  }
+
+  useEffect(() => {
+    getPassportCeramic();
+  }, [connection, ceramicEnv])
+
   // Get list of issued passports
   const passportEvents = useEventListener(
     readContracts,
@@ -240,12 +271,35 @@ function home({ web3 }) {
           <h3>Description: {yourJSON.description}</h3>
         </div>
       )}
-      {connection.status === "connected" && connection.selfId ? (
+      {connection.status === "connected" && connection.selfID ? (
         <div>
-          <h3>Your DID: {connection.selfID.did}</h3>
+          <h3>{viewerRecord.isLoading
+            ? 'Loading...'
+            : viewerRecord.content
+              ? `Hello ${viewerRecord.content.name || 'stranger'}!`
+              : 'No Ceramic profile to load'}</h3>
+          <h3>Your 3ID is {connection.selfID.id}</h3>
+          {
+            !ceramicPassport &&
+            <Button
+              loading={sending}
+              size="large"
+              shape="round"
+              type="primary"
+              onClick={async () => {
+                await createPassportCeramic();
+                console.log("Passport created!")
+              }}
+            >
+              Create A Ceramic Passport
+            </Button>
+          }
+          {
+            ceramicPassport && <p>{JSON.stringify(ceramicPassport)}</p>
+          }
         </div>
       ) : (
-        <div>NO DID</div>
+        <div>Connect with your wallet to create or access your 3ID</div>
       )}
       <Divider style={{ borderColor: "black" }} />
       <div className="p-10 mb-10">
