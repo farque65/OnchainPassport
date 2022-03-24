@@ -8,7 +8,17 @@ import Web3Modal from "web3modal";
 import { INFURA_ID, NETWORK, NETWORKS } from "../constants";
 import { Transactor } from "../helpers";
 import { useBalance, useContractLoader, useGasPrice, useOnBlock, useUserProviderAndSigner } from "eth-hooks";
+import { useUserSigner } from "../hooks";
 import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
+import { useConnection } from "@self.id/framework";
+import { DID } from "dids";
+import { Ed25519Provider } from "key-did-provider-ed25519";
+import { getResolver } from "key-did-resolver";
+import { CeramicClient } from "@ceramicnetwork/http-client";
+import { DataModel } from "@glazed/datamodel";
+import { DIDDataStore } from "@glazed/did-datastore";
+import { TileLoader } from "@glazed/tile-loader";
+import modelAliases from "../../schemas/scripts/model.json";
 
 // contracts
 import deployedContracts from "../contracts/hardhat_contracts.json";
@@ -24,7 +34,7 @@ const { ethers } = require("ethers");
 export const Web3Context = React.createContext({});
 
 // provider Component that wraps the entire app and provides context variables
-export function Web3Provider({ children, network = "localhost", DEBUG = true, NETWORKCHECK = true, ...props }) {
+export function Web3Provider({ children, network = "localhost", DEBUG = false, NETWORKCHECK = true, ...props }) {
   // for Nextjs Builds, return null until "window" is available
   if (!global.window) {
     return null;
@@ -170,8 +180,10 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
-  const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider);
-  const userSigner = userProviderAndSigner.signer;
+  // const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider);
+  // const userSigner = userProviderAndSigner.signer;
+
+  const userSigner = useUserSigner(injectedProvider, localProvider, false);
 
   useEffect(() => {
     async function getAddress() {
@@ -346,6 +358,45 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
     );
   }
 
+  const [connection, connect, disconnect] = useConnection();
+  const [ceramicEnv, setCeramicEnv] = useState({});
+  const initCeramic = async () => {
+    let did;
+    if (connection.status === "connected") {
+      did = connection.selfID.did;
+    } else {
+      const SEED = new Uint8Array([
+        6, 190, 125, 152, 83, 9, 111, 202, 6, 214, 218, 146, 104, 168, 166, 110, 202, 171, 42, 114, 73, 204, 214, 60,
+        112, 254, 173, 151, 170, 254, 250, 2,
+      ]);
+
+      // Create and authenticate the DID
+      did = new DID({
+        provider: new Ed25519Provider(SEED),
+        resolver: getResolver(),
+      });
+      await did.authenticate();
+    }
+
+    // Create the Ceramic instance and inject the DID
+    const ceramic = new CeramicClient("http://localhost:7007");
+    ceramic.did = did;
+    console.log("Current ceramic did: " + ceramic.did.id);
+
+    // Create the loader, model and store
+    const loader = new TileLoader({ ceramic });
+    const model = new DataModel({ loader, model: modelAliases });
+    const store = new DIDDataStore({ ceramic, loader, model });
+    setCeramicEnv({
+      loader,
+      model,
+      store,
+    });
+  };
+  useEffect(async () => {
+    initCeramic();
+  }, [connection.status]);
+
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
@@ -365,6 +416,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
       console.log(code, reason);
       logoutOfWeb3Modal();
     });
+    connect();
   }, [setInjectedProvider]);
 
   useEffect(() => {
@@ -437,6 +489,7 @@ export function Web3Provider({ children, network = "localhost", DEBUG = true, NE
     logoutOfWeb3Modal,
     contractConfig,
     startBlock,
+    connection,
   };
 
   return <Web3Context.Provider value={providerProps}>{children}</Web3Context.Provider>;
