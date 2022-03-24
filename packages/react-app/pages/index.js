@@ -153,8 +153,8 @@ function home({ web3 }) {
     connection,
     ceramicEnv,
   } = web3;
-  const viewerRecord = useViewerRecord('basicProfile')
-  const [ceramicPassport, setCeramicPassport] = useState()
+  const viewerRecord = useViewerRecord("basicProfile");
+  const [ceramicPassport, setCeramicPassport] = useState();
 
   useEffect(() => {
     let score = 0;
@@ -229,26 +229,59 @@ function home({ web3 }) {
     const newPassport = await ceramicEnv.model.createTile("Passport", {
       dateCreated: date.toISOString(),
       dateUpdated: date.toISOString(),
-      stamps: []
+      stamps: [],
     });
-    console.log("Creating new passport: " + JSON.stringify(newPassport.content) + "; id: " + JSON.stringify(newPassport.id))
-    const streamID = await ceramicEnv.store.set("passport", { ...newPassport.content })
-    console.log("Stream ID: ", streamID.toUrl())
-  }
+    console.log(
+      "Creating new passport: " + JSON.stringify(newPassport.content) + "; id: " + JSON.stringify(newPassport.id),
+    );
+    const streamID = await ceramicEnv.store.set("passport", { ...newPassport.content });
+    console.log("Stream ID: ", streamID.toUrl());
+    await getPassportCeramic();
+  };
 
   const getPassportCeramic = async () => {
     if (connection.status === "connected") {
       const pass = await ceramicEnv.store.get("passport");
-      console.log("Loaded passport: " + JSON.stringify(pass))
-      setCeramicPassport(pass)
+      console.log("Loaded passport: " + JSON.stringify(pass));
+      setCeramicPassport(pass);
     } else {
-      console.log("Not connected")
+      console.log("Not connected");
     }
-  }
+  };
+
+  const deletePassportCeramic = async () => {
+    await ceramicEnv.store.remove("passport");
+    console.log("Passport deleted");
+    await getPassportCeramic();
+  };
+
+  const addStampsCeramic = async () => {
+    if (ceramicPassport) {
+      const date = new Date();
+      const updatedStamps = ceramicPassport.stamps.concat(
+        attestations.map(att => {
+          return {
+            providerId: att.ref,
+            name: att.name,
+            description: att.desc,
+            isVerified: att.is_verified,
+            dateVerified: date.toISOString(),
+          };
+        }),
+      );
+      const updatedPassport = { ...ceramicPassport, dateUpdated: date.toISOString(), stamps: updatedStamps };
+      console.log("update passport: ", JSON.stringify(updatedPassport));
+
+      const streamID = await ceramicEnv.store.set("passport", updatedPassport);
+      console.log("Stream ID: ", streamID.toUrl());
+
+      await getPassportCeramic();
+    }
+  };
 
   useEffect(() => {
     getPassportCeramic();
-  }, [connection, ceramicEnv])
+  }, [connection, ceramicEnv]);
 
   // Get list of issued passports
   const passportEvents = useEventListener(
@@ -273,14 +306,16 @@ function home({ web3 }) {
       )}
       {connection.status === "connected" && connection.selfID ? (
         <div>
-          <h3>{viewerRecord.isLoading
-            ? 'Loading...'
-            : viewerRecord.content
-              ? `Hello ${viewerRecord.content.name || 'stranger'}!`
-              : 'No Ceramic profile to load'}</h3>
+          <h3>
+            {viewerRecord.isLoading
+              ? "Loading..."
+              : viewerRecord.content
+              ? `Hello ${viewerRecord.content.name || "stranger"}!`
+              : "No Ceramic profile to load"}
+          </h3>
           <h3>Your 3ID is {connection.selfID.id}</h3>
-          {
-            !ceramicPassport &&
+          <h3>Bio: {viewerRecord.content.description}</h3>
+          {!ceramicPassport && (
             <Button
               loading={sending}
               size="large"
@@ -288,15 +323,12 @@ function home({ web3 }) {
               type="primary"
               onClick={async () => {
                 await createPassportCeramic();
-                console.log("Passport created!")
+                console.log("Passport created!");
               }}
             >
               Create A Ceramic Passport
             </Button>
-          }
-          {
-            ceramicPassport && <p>{JSON.stringify(ceramicPassport)}</p>
-          }
+          )}
         </div>
       ) : (
         <div>Connect with your wallet to create or access your 3ID</div>
@@ -323,7 +355,37 @@ function home({ web3 }) {
           <div className="flex flex-wrap mt-10 p-2">
             <div className="flex flex-wrap w-1/2 justify-center items-center">
               <div className="max-w-md">
-                <div>{JSON.stringify(passportData)}</div>
+                <div>
+                  {ceramicPassport && <p>{JSON.stringify(ceramicPassport)}</p>}
+                  {ceramicPassport && (
+                    <Button
+                      loading={sending}
+                      size="large"
+                      shape="round"
+                      type="primary"
+                      onClick={async () => {
+                        await deletePassportCeramic();
+                        console.log("Passport deleted!");
+                      }}
+                    >
+                      Delete your passport
+                    </Button>
+                  )}
+                  {ceramicPassport && (
+                    <Button
+                      loading={sending}
+                      size="large"
+                      shape="round"
+                      type="primary"
+                      onClick={async () => {
+                        await addStampsCeramic();
+                        console.log("Stamps updated!");
+                      }}
+                    >
+                      Update your stamps
+                    </Button>
+                  )}
+                </div>
 
                 <br />
                 <br />
