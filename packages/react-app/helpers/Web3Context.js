@@ -416,8 +416,9 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
       console.log(code, reason);
       logoutOfWeb3Modal();
     });
-    connect();
   }, [setInjectedProvider]);
+
+  const loadWeb3ModalCeramic = useCallback(async () => connect());
 
   useEffect(() => {
     if (web3Modal && web3Modal.cachedProvider) {
@@ -486,11 +487,13 @@ export function Web3Provider({ children, network = "localhost", DEBUG = false, N
     web3Modal,
     faucetAvailable,
     loadWeb3Modal,
+    loadWeb3ModalCeramic,
     logoutOfWeb3Modal,
     contractConfig,
     startBlock,
     connection,
-    ceramicEnv
+    ceramicEnv,
+    disconnect,
   };
 
   return <Web3Context.Provider value={providerProps}>{children}</Web3Context.Provider>;

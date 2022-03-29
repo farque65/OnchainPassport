@@ -13,9 +13,12 @@ export default function Account({
   minimized,
   web3Modal,
   loadWeb3Modal,
+  loadWeb3ModalCeramic,
   logoutOfWeb3Modal,
   blockExplorer,
   userSigner,
+  connection,
+  disconnect,
 }) {
   const modalButtons = [];
   if (web3Modal) {
@@ -47,6 +50,33 @@ export default function Account({
         </Button>,
       );
     }
+  }
+  if (connection?.selfID) {
+    modalButtons.push(
+      <Button
+        key="logoutbutton"
+        style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4 }}
+        shape="round"
+        size="large"
+        onClick={disconnect}
+      >
+        disconnect self.id and metamask
+      </Button>,
+    );
+  } else {
+    modalButtons.push(
+      <Button
+        key="loginbutton"
+        style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4 }}
+        shape="round"
+        size="large"
+        onClick={() => {
+          loadWeb3ModalCeramic();
+        }}
+      >
+        connect self.id and metamask
+      </Button>,
+    );
   }
 
   const { currentTheme } = useThemeSwitcher();
